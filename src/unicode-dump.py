@@ -65,8 +65,6 @@ def main() -> None:
 
     for string in strings:
         for index, (c, codepoint) in enumerate(((c, ord(c)) for c in string), start = index_total):
-            codepoint_formatted = int_to_unicode_format(codepoint).ljust(MAX_UNICODE_FORMAT_LENGTH)
-
             if index % max_per_line == max_per_line - 1:
                 end = "\n"
             else:
@@ -76,7 +74,7 @@ def main() -> None:
                 # naive check for non printable
                 c = "."
 
-            to_print = f"{CSI_BOLD}{c}{CSI_RESET} {codepoint_formatted}{end}"
+            to_print = f"{CSI_BOLD}{c}{CSI_RESET} {int_to_unicode_format(codepoint):{MAX_UNICODE_FORMAT_LENGTH}}{end}"
 
             print(to_print, end = "")
 
