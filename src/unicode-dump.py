@@ -35,6 +35,13 @@ def get_cli_args() -> argparse.Namespace:
         default = MAX_PER_LINE_DEFAULT
     )
 
+    SPLIT_STDIN_LINES_DEFAULT = "auto"
+    parser.add_argument("--split-stdin-lines",
+        help = f"start each line read from stdin on a new line. Defaults to {repr(SPLIT_STDIN_LINES_DEFAULT)}",
+        choices = ["auto", "always", "never"],
+        default = "auto"
+    )
+
     args = parser.parse_args()
 
     return args
@@ -46,14 +53,18 @@ def main() -> None:
     max_per_line: int = getattr(args, "max_per_line")
 
     if argv_strings:
+        reading_from_stdin = False
         strings = [" ".join(argv_strings)] # bloated str.join; could intersperse " " among argv_strings instead
     else:
+        reading_from_stdin = True
         strings = sys.stdin # read line by line
 
     end = "\n"
 
+    index_total = 0 # total number of characters read
+
     for string in strings:
-        for index, (c, codepoint) in enumerate(((c, ord(c)) for c in string)):
+        for index, (c, codepoint) in enumerate(((c, ord(c)) for c in string), start = index_total):
             codepoint_formatted = int_to_unicode_format(codepoint).ljust(MAX_UNICODE_FORMAT_LENGTH)
 
             if index % max_per_line == max_per_line - 1:
@@ -61,7 +72,7 @@ def main() -> None:
             else:
                 end = " "
 
-            if codepoint < 32:
+            if codepoint < 32 or codepoint == 0x7F:
                 # naive check for non printable
                 c = "."
 
@@ -69,7 +80,12 @@ def main() -> None:
 
             print(to_print, end = "")
 
-        if end != "\n":
+        if reading_from_stdin and (
+            args.split_stdin_lines == "never"
+            or (args.split_stdin_lines == "auto" and not sys.stdin.isatty())
+        ):
+            index_total += len(string)
+        elif end != "\n":
             print()
 
 if __name__ == "__main__":
