@@ -59,14 +59,21 @@ def main() -> None:
         reading_from_stdin = True
         strings = sys.stdin # read line by line
 
+    one_long_sequence = not reading_from_stdin or (
+        args.split_stdin_lines == "never"
+        or (args.split_stdin_lines == "auto" and not sys.stdin.isatty())
+    )
+
     end = "\n"
 
-    index_total = 0 # total number of characters read
+    c_start_position_on_line = 0
+    # if printing the contents of multiple LF delimited strings continuously
+    # without real LFs we need to know where the each string ends
 
     for string in strings:
         for c, codepoint, end in (
             (c, ord(c), "\n" if c_index % max_per_line == max_per_line - 1 else " ")
-            for (c_index, c) in enumerate(string, start = index_total)
+            for (c_index, c) in enumerate(string, start = c_start_position_on_line)
         ):
             if codepoint < 32 or codepoint == 0x7F:
                 # naive check for non printable
@@ -74,13 +81,13 @@ def main() -> None:
 
             print(f"{CSI_BOLD}{c}{CSI_RESET} {int_to_unicode_format(codepoint):{MAX_UNICODE_FORMAT_LENGTH}}", end = end)
 
-        if reading_from_stdin and (
-            args.split_stdin_lines == "never"
-            or (args.split_stdin_lines == "auto" and not sys.stdin.isatty())
-        ):
-            index_total += len(string)
+        if one_long_sequence:
+            c_start_position_on_line = (c_start_position_on_line + len(string)) % max_per_line
         elif end != "\n":
             print()
+
+    if one_long_sequence and end != "\n":
+        print()
 
 if __name__ == "__main__":
     main()
