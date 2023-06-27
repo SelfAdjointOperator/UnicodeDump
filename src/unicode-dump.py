@@ -64,12 +64,10 @@ def main() -> None:
     index_total = 0 # total number of characters read
 
     for string in strings:
-        for index, (c, codepoint) in enumerate(((c, ord(c)) for c in string), start = index_total):
-            if index % max_per_line == max_per_line - 1:
-                end = "\n"
-            else:
-                end = " "
-
+        for c, codepoint, end in (
+            (c, ord(c), "\n" if c_index % max_per_line == max_per_line - 1 else " ")
+            for (c_index, c) in enumerate(string, start = index_total)
+        ):
             if codepoint < 32 or codepoint == 0x7F:
                 # naive check for non printable
                 c = "."
