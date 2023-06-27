@@ -74,9 +74,7 @@ def main() -> None:
                 # naive check for non printable
                 c = "."
 
-            to_print = f"{CSI_BOLD}{c}{CSI_RESET} {int_to_unicode_format(codepoint):{MAX_UNICODE_FORMAT_LENGTH}}{end}"
-
-            print(to_print, end = "")
+            print(f"{CSI_BOLD}{c}{CSI_RESET} {int_to_unicode_format(codepoint):{MAX_UNICODE_FORMAT_LENGTH}}", end = end)
 
         if reading_from_stdin and (
             args.split_stdin_lines == "never"
